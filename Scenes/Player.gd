@@ -16,6 +16,11 @@ var motion = Vector2()
 var current_power = null
 var current_speed = SPEED
 
+signal respawning
+
+func _ready():
+	position = get_node("../Respawn").position
+
 func _physics_process(delta):
 	motion.y += GRAVITY
 	if motion.y > 0: # player is falling
@@ -24,13 +29,25 @@ func _physics_process(delta):
 		motion += UP * (-9.81) * (lowJumpMultiplier) # Jump height depends on how long you hold the key
 	call_deferred("process_input")
 	motion = move_and_slide(motion, UP)
+	
+	if get_slide_count() > 0:
+		for i in range(get_slide_count()):
+			if get_slide_collision(i).collider.get_name() == "Traps":
+				$AnimatedSprite.play("Death")
+				#$AnimatedSprite.connect("animation_finished", self, "die")
+				if not $AnimatedSprite.is_playing():
+					emit_signal("respawning")
 
 func process_input():
 	if not Input.is_action_pressed("ui_select"):
 		if Input.is_action_pressed("ui_right"):
 			motion.x = current_speed
+			$AnimatedSprite.flip_h = false
+			$Mask.flip_h = false
 		elif Input.is_action_pressed("ui_left"):
 			motion.x = -current_speed
+			$AnimatedSprite.flip_h = true
+			$Mask.flip_h = true
 		else:
 			motion.x = 0
 			
@@ -43,9 +60,20 @@ func process_input():
 				current_speed = DASHSPEED
 				$DashTimer.start()
 
+func die():
+	queue_free()
+
 func _on_MaskMenu_mask_selected(mask):
-	current_power = mask
-	print("obtained power", mask)
+	match mask:
+		"shield": current_power = "3"
+		"dash": current_power = "1"
+		"attack": current_power = "4"
+	print("Selected power", mask)
+	var img = Image.new()
+	var itex = ImageTexture.new()
+	img.load("res://assets/sprites/Player64x64-"+current_power+".png")
+	itex.create_from_image(img)
+	$Mask.texture = itex
 
 
 func _on_DashTimer_timeout():
