@@ -13,9 +13,15 @@ _global_script_classes=[ {
 "class": "PickableMask",
 "language": "GDScript",
 "path": "res://Scenes/PickableMask.gd"
+}, {
+"base": "Node",
+"class": "StateMachine",
+"language": "GDScript",
+"path": "res://Scripts/StateMachine.gd"
 } ]
 _global_script_class_icons={
-"PickableMask": ""
+"PickableMask": "",
+"StateMachine": ""
 }
 
 [application]

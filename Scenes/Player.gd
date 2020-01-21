@@ -1,9 +1,17 @@
 extends KinematicBody2D
 
+signal respawning
+signal health_updated(health)
+signal killed()
+
+
 const UP = Vector2(0, -1)
 export var GRAVITY = 8
 export var SPEED = 200
 export var DASHSPEED = 700
+
+export var max_health = 1
+onready var health = max_health setget _set_health
 
 # JUMP mechanic
 # source: https://godotengine.org/qa/26160/jump-godot-holding-button-higher-jump-tapping-100%25-same-height
@@ -12,45 +20,21 @@ export var lowJumpMultiplier = 20
 export var jumpVelocity = 700
 
 var motion = Vector2()
+var move_direction = null
+var looking_direction = null
 
 var current_power = null
 var current_speed = SPEED
 
-signal respawning
-
 func _ready():
 	position = get_node("../Respawn").position
+	current_speed = SPEED
+	connect("killed", get_parent(), "_on_Player_killed")
 
-func _physics_process(delta):
-	motion.y += GRAVITY
-	if motion.y > 0: # player is falling
-		motion += UP * (-9.81) * (fallMultiplier) # Falling action is faster than jumping | Mario-like
-	elif motion.y < 0 && Input.is_action_just_released("ui_up"): # Player is jumping
-		motion += UP * (-9.81) * (lowJumpMultiplier) # Jump height depends on how long you hold the key
-	call_deferred("process_input")
-	motion = move_and_slide(motion, UP)
-	
-	if get_slide_count() > 0:
-		for i in range(get_slide_count()):
-			if get_slide_collision(i).collider.get_name() == "Traps":
-				$AnimatedSprite.play("Death")
-				#$AnimatedSprite.connect("animation_finished", self, "die")
-				if not $AnimatedSprite.is_playing():
-					emit_signal("respawning")
-
-func process_input():
+func _handle_input():
 	if not Input.is_action_pressed("ui_select"):
-		if Input.is_action_pressed("ui_right"):
-			motion.x = current_speed
-			$AnimatedSprite.flip_h = false
-			$Mask.flip_h = false
-		elif Input.is_action_pressed("ui_left"):
-			motion.x = -current_speed
-			$AnimatedSprite.flip_h = true
-			$Mask.flip_h = true
-		else:
-			motion.x = 0
-			
+		move_direction = -int(Input.is_action_pressed("ui_left")) + int(Input.is_action_pressed("ui_right"))
+
 		if is_on_floor():
 			if Input.is_action_just_pressed("ui_up"):
 				motion = UP * jumpVelocity # Normal jump action
@@ -60,8 +44,16 @@ func process_input():
 				current_speed = DASHSPEED
 				$DashTimer.start()
 
-func die():
-	queue_free()
+func _apply_gravity():
+	motion.y += GRAVITY
+
+func _apply_movement():
+	motion.x = move_direction * current_speed
+	if motion.y > 0: # player is falling
+		motion += UP * (-9.81) * (fallMultiplier) # Falling action is faster than jumping | Mario-like
+	elif motion.y < 0 && Input.is_action_just_released("ui_up"): # Player is jumping
+		motion += UP * (-9.81) * (lowJumpMultiplier) # Jump height depends on how long you hold the key
+	motion = move_and_slide(motion, UP)
 
 func _on_MaskMenu_mask_selected(mask):
 	match mask:
@@ -79,3 +71,29 @@ func _on_MaskMenu_mask_selected(mask):
 func _on_DashTimer_timeout():
 	current_speed = SPEED
 	$CooldownTimer.start()
+
+func _set_health(value):
+	var prev_health = health
+	health = clamp(value, 0, max_health)
+	if health != prev_health:
+		emit_signal("health_updated", health)
+		if health == 0:
+			kill()
+
+func _check_collisions():
+	if get_slide_count() > 0:
+			for i in range(get_slide_count()):
+				var collision = get_slide_collision(i).collider.get_name()
+				match collision:
+					"Traps":
+						damage(1)
+
+func damage(amount):
+	_set_health(health - amount)
+
+func kill():
+	emit_signal("killed")
+	$KilledTimer.start()
+
+func _on_KilledTimer_timeout():
+	queue_free()
