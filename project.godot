@@ -12,7 +12,7 @@ _global_script_classes=[ {
 "base": "RigidBody2D",
 "class": "PickableMask",
 "language": "GDScript",
-"path": "res://Scenes/PickableMask.gd"
+"path": "res://Scripts/PickableMask.gd"
 }, {
 "base": "Node",
 "class": "StateMachine",
@@ -28,6 +28,10 @@ _global_script_class_icons={
 
 config/name="wgj-mm"
 config/icon="res://icon.png"
+
+[autoload]
+
+Globals="*res://Scripts/Globals.gd"
 
 [display]
 

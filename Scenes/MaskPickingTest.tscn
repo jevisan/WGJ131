@@ -1,0 +1,29 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://tilesets/PlatformTileset.tres" type="TileSet" id=1]
+[ext_resource path="res://Scenes/PickableMaskShield.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Scenes/MaskMenu.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Scenes/PickableMaskAttack.tscn" type="PackedScene" id=5]
+
+[node name="MaskPickingTest" type="Node"]
+
+[node name="TileMap" type="TileMap" parent="."]
+tile_set = ExtResource( 1 )
+cell_size = Vector2( 32, 32 )
+format = 1
+tile_data = PoolIntArray( 917504, 0, 0, 917505, 0, 0, 917506, 0, 0, 917507, 0, 0, 917508, 0, 0, 917509, 0, 0, 917510, 0, 0, 917511, 0, 0, 917512, 0, 0, 917513, 0, 0, 917514, 0, 0, 917515, 0, 0, 917516, 0, 0, 917517, 0, 0, 917518, 0, 0, 917519, 0, 0, 917520, 0, 0, 917521, 0, 0, 917522, 0, 0, 917523, 0, 0, 917524, 0, 0, 917525, 0, 0, 917526, 0, 0, 917527, 0, 0, 917528, 0, 0, 917529, 0, 0, 917530, 0, 0, 917531, 0, 0, 917532, 0, 0, 917533, 0, 0, 917534, 0, 0 )
+
+[node name="PickableMaskShield" parent="." instance=ExtResource( 2 )]
+position = Vector2( 640, 416 )
+
+[node name="Player" parent="." instance=ExtResource( 3 )]
+position = Vector2( 416, 416 )
+
+[node name="MaskMenu" parent="." instance=ExtResource( 4 )]
+
+[node name="PickableMaskAttack" parent="." instance=ExtResource( 5 )]
+position = Vector2( 96, 400 )
+[connection signal="picked" from="PickableMaskShield" to="MaskMenu" method="_on_PickableMask_picked"]
+[connection signal="mask_selected" from="MaskMenu" to="Player" method="_on_MaskMenu_mask_selected"]
+[connection signal="picked" from="PickableMaskAttack" to="MaskMenu" method="_on_PickableMask_picked"]

@@ -1,41 +1,56 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=21 format=2]
 
-[ext_resource path="res://Scenes/Player.gd" type="Script" id=1]
-[ext_resource path="res://Scenes/DebugLabels.tscn" type="PackedScene" id=2]
-[ext_resource path="res://Scenes/PlayerStateMachine.gd" type="Script" id=3]
-[ext_resource path="res://assets/sprites/Respawn-1.png" type="Texture" id=4]
-[ext_resource path="res://assets/sprites/Respawn-2.png" type="Texture" id=5]
-[ext_resource path="res://assets/sprites/Respawn-3.png" type="Texture" id=6]
-[ext_resource path="res://assets/sprites/Respawn-4.png" type="Texture" id=7]
-[ext_resource path="res://assets/sprites/Player_Sprite-1.png" type="Texture" id=8]
-[ext_resource path="res://assets/sprites/Player_Sprite-2.png" type="Texture" id=9]
-[ext_resource path="res://assets/sprites/Death-1.png" type="Texture" id=10]
-[ext_resource path="res://assets/sprites/Death-2.png" type="Texture" id=11]
-[ext_resource path="res://assets/sprites/Death-3.png" type="Texture" id=12]
+[ext_resource path="res://Scripts/Player.gd" type="Script" id=1]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Respawn-1.png" type="Texture" id=2]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Respawn-2.png" type="Texture" id=3]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Respawn-3.png" type="Texture" id=4]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Respawn-4.png" type="Texture" id=5]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Player-Attack64x64-1.png" type="Texture" id=6]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Player-Attack64x64-2.png" type="Texture" id=7]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Player-Attack64x64-3.png" type="Texture" id=8]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Death-1.png" type="Texture" id=9]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Death-2.png" type="Texture" id=10]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Death-3.png" type="Texture" id=11]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Player_Sprite-1.png" type="Texture" id=12]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Player_Sprite-2.png" type="Texture" id=13]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Player-Shield64x64-1.png" type="Texture" id=14]
+[ext_resource path="res://assets/sprites/PlayerAnimations/Player-Shield64x64-2.png" type="Texture" id=15]
+[ext_resource path="res://Scripts/PlayerStateMachine.gd" type="Script" id=16]
+[ext_resource path="res://Scenes/DebugLabels.tscn" type="PackedScene" id=17]
 
-[sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 18, 32 )
-
-[sub_resource type="SpriteFrames" id=2]
+[sub_resource type="SpriteFrames" id=1]
 animations = [ {
-"frames": [ ExtResource( 4 ), ExtResource( 5 ), ExtResource( 6 ), ExtResource( 7 ) ],
+"frames": [ ExtResource( 2 ), ExtResource( 3 ), ExtResource( 4 ), ExtResource( 5 ) ],
 "loop": false,
 "name": "Respawn",
 "speed": 6.0
 }, {
-"frames": [ ExtResource( 8 ), ExtResource( 9 ) ],
+"frames": [ ExtResource( 6 ), ExtResource( 7 ), ExtResource( 8 ) ],
+"loop": true,
+"name": "Attack",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 9 ), ExtResource( 10 ), ExtResource( 11 ) ],
+"loop": false,
+"name": "Death",
+"speed": 6.0
+}, {
+"frames": [ ExtResource( 12 ), ExtResource( 13 ) ],
 "loop": true,
 "name": "Idle",
 "speed": 6.0
 }, {
-"frames": [ ExtResource( 10 ), ExtResource( 11 ), ExtResource( 12 ) ],
-"loop": false,
-"name": "Death",
-"speed": 6.0
+"frames": [ ExtResource( 14 ), ExtResource( 15 ) ],
+"loop": true,
+"name": "Shield",
+"speed": 5.0
 } ]
 
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 19.2989, 31.0284 )
+
 [sub_resource type="RectangleShape2D" id=3]
-extents = Vector2( 19.117, 28.1632 )
+extents = Vector2( 18, 30 )
 
 [node name="Player" type="KinematicBody2D"]
 collision_mask = 6
@@ -43,24 +58,27 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_group_": true
 }
-GRAVITY = 20
 
-[node name="DebugLabels" parent="." instance=ExtResource( 2 )]
+[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+frames = SubResource( 1 )
+animation = "Idle"
 
-[node name="PlayerStateMachine" type="Node" parent="."]
-script = ExtResource( 3 )
+[node name="AttackShape" type="Area2D" parent="AnimatedSprite"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AnimatedSprite/AttackShape"]
+position = Vector2( 12, 0 )
+shape = SubResource( 2 )
+disabled = true
 
 [node name="Mask" type="Sprite" parent="."]
 
+[node name="PlayerStateMachine" type="Node" parent="."]
+script = ExtResource( 16 )
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 visible = false
-shape = SubResource( 1 )
-
-[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
-frames = SubResource( 2 )
-animation = "Idle"
-frame = 1
-playing = true
+position = Vector2( 0, 1 )
+shape = SubResource( 3 )
 
 [node name="DashTimer" type="Timer" parent="."]
 wait_time = 0.2
@@ -71,14 +89,12 @@ one_shot = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
 current = true
-
-[node name="Area2D" type="Area2D" parent="."]
-collision_mask = 6
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource( 3 )
+smoothing_enabled = true
 
 [node name="KilledTimer" type="Timer" parent="."]
+wait_time = 0.5
 one_shot = true
+
+[node name="DebugLabels" parent="." instance=ExtResource( 17 )]
 [connection signal="timeout" from="DashTimer" to="." method="_on_DashTimer_timeout"]
 [connection signal="timeout" from="KilledTimer" to="." method="_on_KilledTimer_timeout"]
